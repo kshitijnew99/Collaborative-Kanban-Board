@@ -62,6 +62,19 @@ export function KanbanApp() {
               <span className="material-symbols-outlined text-[20px]">campaign</span>
               <span className="text-xs">Feedback</span>
             </a>
+            <button
+              onClick={() => {
+                if (window.confirm("Are you sure you want to reset the board? This will clear all cards and restore default columns (To Do, In Progress, In Review, Done).")) {
+                  localStorage.removeItem('kanban-board-state');
+                  localStorage.removeItem('kanban-board-activity');
+                  window.location.reload();
+                }
+              }}
+              className="flex items-center gap-md px-md py-sm text-danger rounded-lg hover:bg-danger/10 transition-colors w-full text-left font-semibold cursor-pointer outline-none border-none bg-transparent"
+            >
+              <span className="material-symbols-outlined text-[20px]">restart_alt</span>
+              <span className="text-xs">Reset Board</span>
+            </button>
           </div>
         </aside>
 

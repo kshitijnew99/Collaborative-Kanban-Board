@@ -30,9 +30,9 @@ export function createDefaultBoard(): Board {
   return {
     title: 'Linear Kanban System',
     columns: [
-      { id: generateId(), name: 'Backlog', cardIds: [] },
-      { id: generateId(), name: 'Todo', cardIds: [] },
+      { id: generateId(), name: 'To Do', cardIds: [] },
       { id: generateId(), name: 'In Progress', cardIds: [] },
+      { id: generateId(), name: 'In Review', cardIds: [] },
       { id: generateId(), name: 'Done', cardIds: [] },
     ],
     cardsById: {},
