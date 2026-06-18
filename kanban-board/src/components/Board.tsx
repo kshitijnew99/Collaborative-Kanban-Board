@@ -147,7 +147,7 @@ export function Board() {
   );
 
   return (
-    <div className="flex-1 flex min-h-0 relative" onClick={() => setSelectedCardId(null)}>
+    <div className="flex-1 flex min-w-0 min-h-0 relative" onClick={() => setSelectedCardId(null)}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}

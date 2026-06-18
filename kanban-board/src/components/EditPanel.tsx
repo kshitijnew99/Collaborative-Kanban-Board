@@ -26,6 +26,23 @@ export function EditPanel() {
   const [commentAuthor, setCommentAuthor] = useState<string>(DEFAULT_ASSIGNEES[0]);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
+  // Local drafts for title & description to prevent flooding the activity feed on every keystroke
+  const [localTitle, setLocalTitle] = useState('');
+  const [localDescription, setLocalDescription] = useState('');
+  const isTitleFocused = useRef(false);
+  const isDescriptionFocused = useRef(false);
+
+  useEffect(() => {
+    if (card) {
+      if (!isTitleFocused.current) {
+        setLocalTitle(card.title);
+      }
+      if (!isDescriptionFocused.current) {
+        setLocalDescription(card.description || '');
+      }
+    }
+  }, [card]);
+
   // Reset comment input when card changes
   useEffect(() => {
     setCommentText('');
@@ -121,8 +138,17 @@ export function EditPanel() {
         {/* Title */}
         <section>
           <textarea
-            value={card.title}
-            onChange={(e) => handleFieldChange('title', e.target.value)}
+            value={localTitle}
+            onChange={(e) => setLocalTitle(e.target.value)}
+            onFocus={() => {
+              isTitleFocused.current = true;
+            }}
+            onBlur={() => {
+              isTitleFocused.current = false;
+              if (localTitle.trim() && localTitle !== card.title) {
+                handleFieldChange('title', localTitle.trim());
+              }
+            }}
             rows={2}
             className="w-full font-headline-sm text-lg font-bold bg-transparent border-none resize-none p-0 focus:ring-0 leading-tight outline-none"
           />
@@ -207,8 +233,17 @@ export function EditPanel() {
             Description
           </label>
           <textarea
-            value={card.description}
-            onChange={(e) => handleFieldChange('description', e.target.value)}
+            value={localDescription}
+            onChange={(e) => setLocalDescription(e.target.value)}
+            onFocus={() => {
+              isDescriptionFocused.current = true;
+            }}
+            onBlur={() => {
+              isDescriptionFocused.current = false;
+              if (localDescription !== (card.description || '')) {
+                handleFieldChange('description', localDescription || null);
+              }
+            }}
             placeholder="Add a description..."
             rows={5}
             className="w-full bg-transparent text-on-surface text-sm border-none focus:ring-0 outline-none resize-none placeholder:text-outline/70 leading-relaxed"
