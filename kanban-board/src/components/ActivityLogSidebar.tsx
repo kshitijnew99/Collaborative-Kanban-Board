@@ -17,26 +17,29 @@ export function ActivityLogSidebar() {
   }, []);
 
   return (
-    <>
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-surface border border-r-0 border-outline-variant rounded-l-lg px-1.5 py-3 text-outline hover:text-primary transition-all cursor-pointer shadow-md ${
-          isOpen ? 'right-80' : 'right-0'
-        }`}
-        title={isOpen ? 'Close activity log' : 'Open activity log'}
-      >
-        <span className="material-symbols-outlined text-[18px]">
-          {isOpen ? 'chevron_right' : 'history'}
-        </span>
-      </button>
+    <div
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+      className="fixed right-0 top-16 bottom-0 z-50 flex pointer-events-none"
+      style={{
+        transform: isOpen ? 'translateX(0)' : 'translateX(320px)',
+        transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+      }}
+    >
+      {/* Toggle Button Handle */}
+      <div className="pointer-events-auto flex items-center h-full">
+        <button
+          className="bg-surface border border-r-0 border-outline-variant rounded-l-lg px-1.5 py-3 text-outline hover:text-primary transition-all shadow-md flex items-center justify-center cursor-pointer select-none"
+          title="Activity log (hover to open)"
+        >
+          <span className="material-symbols-outlined text-[18px]">
+            {isOpen ? 'chevron_right' : 'history'}
+          </span>
+        </button>
+      </div>
 
       {/* Sidebar Panel */}
-      <aside
-        className={`fixed right-0 top-16 bottom-0 w-80 bg-surface border-l border-outline-variant z-20 flex flex-col shadow-2xl transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
+      <aside className="pointer-events-auto w-80 bg-surface border-l border-outline-variant flex flex-col shadow-2xl h-full">
         <header className="p-lg border-b border-outline-variant flex justify-between items-center shrink-0">
           <h2 className="font-headline-sm text-sm font-bold flex items-center gap-sm text-on-surface">
             <span className="material-symbols-outlined text-primary text-[20px]">history</span>
@@ -94,6 +97,6 @@ export function ActivityLogSidebar() {
           </div>
         </footer>
       </aside>
-    </>
+    </div>
   );
 }
