@@ -23,7 +23,7 @@ export function ConfirmPrompt({
   if (isConfirming) {
     return (
       <div className={`flex items-center gap-2 ${className ?? ''}`}>
-        <span className="text-sm text-[#8a8f98]">Are you sure?</span>
+        <span className="text-sm text-on-surface-variant">Are you sure?</span>
         <Button
           variant="danger"
           onClick={() => {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useActivityLog } from '@/store/board-store';
 import { relativeTime } from '@/utils/time';
+import { getInitials } from '@/utils/constants';
 
 export function ActivityLogSidebar() {
   const activityLog = useActivityLog();
@@ -20,59 +21,79 @@ export function ActivityLogSidebar() {
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed right-0 top-1/2 -translate-y-1/2 z-20 bg-[#0f1011] border border-r-0 border-[#23252a] rounded-l-lg px-1.5 py-3 text-[#8a8f98] hover:text-[#f7f8f8] transition-colors cursor-pointer ${
-          isOpen ? 'right-72' : 'right-0'
+        className={`fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-surface border border-r-0 border-outline-variant rounded-l-lg px-1.5 py-3 text-outline hover:text-primary transition-all cursor-pointer shadow-md ${
+          isOpen ? 'right-80' : 'right-0'
         }`}
         title={isOpen ? 'Close activity log' : 'Open activity log'}
       >
-        <svg
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
+        <span className="material-symbols-outlined text-[18px]">
+          {isOpen ? 'chevron_right' : 'history'}
+        </span>
       </button>
 
-      {/* Sidebar */}
-      <div
-        className={`fixed right-0 top-0 bottom-0 w-72 bg-[#0f1011] border-l border-[#23252a] z-10 flex flex-col transition-transform duration-200 ${
+      {/* Sidebar Panel */}
+      <aside
+        className={`fixed right-0 top-16 bottom-0 w-80 bg-surface border-l border-outline-variant z-20 flex flex-col shadow-2xl transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#23252a]">
-          <h2 className="text-sm font-semibold text-[#d0d6e0]">Activity Log</h2>
-          <span className="text-xs text-[#62666d]">{activityLog.length} events</span>
-        </div>
+        <header className="p-lg border-b border-outline-variant flex justify-between items-center shrink-0">
+          <h2 className="font-headline-sm text-sm font-bold flex items-center gap-sm text-on-surface">
+            <span className="material-symbols-outlined text-primary text-[20px]">history</span>
+            Activity Feed
+          </h2>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="p-1 hover:bg-hover rounded-md text-outline cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </header>
 
-        <div className="flex-1 overflow-y-auto">
+        {/* Scrollable Feed */}
+        <div className="flex-1 overflow-y-auto p-lg flex flex-col gap-lg custom-scrollbar">
           {activityLog.length === 0 ? (
-            <div className="p-4 text-center text-xs text-[#62666d]">
-              No activity yet
+            <div className="flex flex-col items-center justify-center p-md text-center text-xs text-outline opacity-60 mt-10">
+              <span className="material-symbols-outlined text-[32px] mb-sm text-outline-variant">history_toggle_off</span>
+              <p>No activity logged yet</p>
             </div>
           ) : (
-            <div className="divide-y divide-[#23252a]">
-              {activityLog.map((entry) => (
-                <div key={entry.id} className="px-4 py-3">
-                  <p className="text-xs text-[#d0d6e0] leading-relaxed mb-1">
-                    {entry.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-[#62666d]">
-                      {relativeTime(entry.timestamp)}
-                    </span>
-                    <span className="text-[10px] text-[#5e6ad2] font-medium">
-                      {entry.tabLabel}
-                    </span>
+            <div className="flex flex-col gap-lg">
+              {activityLog.map((entry, index) => {
+                const isLast = index === activityLog.length - 1;
+                return (
+                  <div key={entry.id} className={`relative flex gap-md ${!isLast ? 'activity-feed-line' : ''}`}>
+                    {/* Left Icon/Initials Avatar */}
+                    <div className="relative z-10 shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-primary-container text-on-primary-container text-[9px] font-extrabold flex items-center justify-center border border-outline-variant shadow-sm" title={entry.tabLabel}>
+                        {getInitials(entry.tabLabel)}
+                      </div>
+                    </div>
+
+                    {/* Right Content */}
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <p className="text-xs text-on-surface leading-normal">
+                        <span className="font-bold text-on-surface">{entry.tabLabel}</span>{' '}
+                        <span className="text-on-surface-variant">{entry.description}</span>
+                      </p>
+                      <span className="text-[10px] text-outline font-semibold">
+                        {relativeTime(entry.timestamp)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
-      </div>
+
+        {/* Footer */}
+        <footer className="p-lg border-t border-outline-variant bg-surface-container-low shrink-0">
+          <div className="text-center text-[10px] text-outline font-bold uppercase tracking-wider">
+            Total {activityLog.length} Event{activityLog.length === 1 ? '' : 's'}
+          </div>
+        </footer>
+      </aside>
     </>
   );
 }

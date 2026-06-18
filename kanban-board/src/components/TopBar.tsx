@@ -60,82 +60,86 @@ export function TopBar() {
   };
 
   return (
-    <header className="flex items-center gap-4 px-5 py-3 bg-[#0f1011] border-b border-[#23252a] shrink-0">
-      {/* Board Title */}
-      <div className="flex items-center gap-2 min-w-0">
-        {isEditingTitle ? (
+    <header className="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-lg h-16 z-50 sticky top-0 shrink-0">
+      {/* Board Title / Project Pulse Logo */}
+      <div className="flex items-center gap-xl min-w-0">
+        <div className="flex items-center gap-2">
+          {isEditingTitle ? (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              onBlur={commitTitle}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitTitle();
+                if (e.key === 'Escape') {
+                  setTitleDraft(boardTitle);
+                  setIsEditingTitle(false);
+                }
+              }}
+              className="bg-background text-on-surface text-lg font-bold px-2 py-0.5 rounded-lg border border-primary outline-none w-48"
+            />
+          ) : (
+            <h1
+              onClick={() => setIsEditingTitle(true)}
+              className="font-headline-sm text-headline-sm font-bold text-on-surface cursor-pointer hover:text-primary transition-colors truncate"
+              title="Click to edit board title"
+            >
+              {boardTitle}
+            </h1>
+          )}
+        </div>
+      </div>
+
+      {/* Middle Spacer */}
+      <div className="flex-grow" />
+
+      {/* Actions Section */}
+      <div className="flex items-center gap-lg">
+        {/* Search Input */}
+        <div className="relative">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">
+            search
+          </span>
           <input
-            ref={titleInputRef}
             type="text"
-            value={titleDraft}
-            onChange={(e) => setTitleDraft(e.target.value)}
-            onBlur={commitTitle}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commitTitle();
-              if (e.key === 'Escape') {
-                setTitleDraft(boardTitle);
-                setIsEditingTitle(false);
-              }
-            }}
-            className="bg-[#141516] text-[#f7f8f8] text-lg font-semibold px-2 py-1 rounded-lg border border-[#5e6ad2] outline-none w-48"
+            placeholder="Search issues..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4 py-1.5 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm w-64 transition-all"
           />
-        ) : (
-          <h1
-            onClick={() => setIsEditingTitle(true)}
-            className="text-[#f7f8f8] text-lg font-semibold cursor-pointer hover:text-[#828fff] transition-colors truncate"
-            title="Click to edit board title"
-          >
-            {boardTitle}
-          </h1>
-        )}
-      </div>
+        </div>
 
-      {/* Spacer */}
-      <div className="flex-1" />
+        {/* Priority Filter Segmented Control */}
+        <div className="flex bg-surface-container p-0.5 rounded-lg border border-outline-variant">
+          {PRIORITY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPriorityFilter(opt.value)}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                priorityFilter === opt.value
+                  ? 'bg-surface shadow-sm text-primary font-bold'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
 
-      {/* Search */}
-      <div className="relative">
-        <svg
-          className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#62666d]"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
+        {/* Tab / Collaboration Counter */}
+        <div
+          className="flex items-center gap-1.5 text-sm text-on-surface-variant border-l border-outline-variant pl-md ml-xs"
+          title={`${tabCount} tab${tabCount === 1 ? '' : 's'} open`}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          type="text"
-          placeholder="Search cards..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-[#141516] text-[#f7f8f8] text-sm pl-8 pr-3 py-1.5 rounded-lg border border-[#23252a] focus:border-[#5e6ad2] outline-none w-48 placeholder:text-[#62666d] transition-colors"
-        />
-      </div>
-
-      {/* Priority Filter */}
-      <div className="flex items-center gap-1 bg-[#141516] rounded-lg p-0.5 border border-[#23252a]">
-        {PRIORITY_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setPriorityFilter(opt.value)}
-            className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
-              priorityFilter === opt.value
-                ? 'bg-[#5e6ad2] text-white'
-                : 'text-[#8a8f98] hover:text-[#f7f8f8]'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Count */}
-      <div className="flex items-center gap-1.5 text-sm text-[#8a8f98]" title={`${tabCount} tab${tabCount === 1 ? '' : 's'} open`}>
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-        <span className="font-medium tabular-nums">{tabCount}</span>
+          <span className="material-symbols-outlined text-[20px] text-primary">
+            groups
+          </span>
+          <span className="font-semibold tabular-nums text-on-surface">
+            {tabCount}
+          </span>
+        </div>
       </div>
     </header>
   );

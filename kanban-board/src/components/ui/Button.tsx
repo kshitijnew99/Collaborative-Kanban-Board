@@ -11,13 +11,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-[#5e6ad2] text-white hover:bg-[#828fff] active:bg-[#5e69d1] border-transparent',
+    'bg-primary text-on-primary hover:opacity-95 active:scale-95 border-transparent',
   secondary:
-    'bg-[#0f1011] text-[#f7f8f8] hover:bg-[#141516] border-[#23252a]',
+    'bg-surface text-on-surface hover:bg-hover border-border',
   danger:
-    'bg-red-500/10 text-red-400 hover:bg-red-500/20 border-red-500/30',
+    'bg-error text-on-error hover:opacity-90 active:scale-95 border-transparent',
   ghost:
-    'bg-transparent text-[#8a8f98] hover:text-[#f7f8f8] hover:bg-[#141516] border-transparent',
+    'bg-transparent text-on-surface-variant hover:bg-hover border-transparent',
 };
 
 export function Button({

@@ -4,7 +4,6 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { clsx } from 'clsx';
 import { useBoardStore } from '@/store/board-store';
-import { Badge } from '@/components/ui/Badge';
 import { isOverdue, formatDate } from '@/utils/time';
 import { getInitials } from '@/utils/constants';
 import type { KanbanCard as KanbanCardType } from '@/types';
@@ -36,6 +35,37 @@ export function Card({ card }: CardProps) {
   const isRemoteDragging = draggingCardId === card.id;
   const overdue = isOverdue(card.dueDate);
 
+  // Generate a mock key for visual polish, like PUL-102
+  const issueKey = `PUL-${card.id.slice(0, 3).toUpperCase()}`;
+
+  const renderPriorityIcon = () => {
+    switch (card.priority) {
+      case 'high':
+        return (
+          <span
+            className="material-symbols-outlined text-danger text-[18px]"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+            title="High Priority"
+          >
+            signal_cellular_alt
+          </span>
+        );
+      case 'medium':
+        return (
+          <span className="material-symbols-outlined text-warning text-[18px]" title="Medium Priority">
+            signal_cellular_alt_2_bar
+          </span>
+        );
+      case 'low':
+      default:
+        return (
+          <span className="material-symbols-outlined text-primary text-[18px]" title="Low Priority">
+            signal_cellular_alt_1_bar
+          </span>
+        );
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -47,41 +77,46 @@ export function Card({ card }: CardProps) {
         setSelectedCardId(card.id);
       }}
       className={clsx(
-        'group bg-[#141516] rounded-lg p-3 border cursor-grab active:cursor-grabbing transition-all duration-150',
-        isDragging && 'opacity-50 shadow-lg shadow-[#5e6ad2]/10 scale-[1.02]',
-        isRemoteDragging && 'opacity-60 border-[#5e6ad2]/40 ring-1 ring-[#5e6ad2]/20',
+        'group bg-surface p-md rounded-xl border shadow-sm cursor-grab active:cursor-grabbing transition-all duration-150 hover:bg-hover',
+        isDragging && 'opacity-50 shadow-lg scale-[1.02]',
+        isRemoteDragging && 'opacity-60 border-primary/40 ring-1 ring-primary/20',
         isSelected
-          ? 'border-[#5e6ad2] ring-1 ring-[#5e6ad2]/30'
-          : 'border-[#23252a] hover:border-[#34343a]'
+          ? 'border-2 border-primary'
+          : 'border-border hover:border-primary/50'
       )}
     >
-      {/* Title + Priority */}
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="text-sm font-medium text-[#f7f8f8] leading-snug line-clamp-2 flex-1">
-          {card.title}
-        </h3>
-        <Badge priority={card.priority} />
+      {/* Header: Key + Priority */}
+      <div className="flex items-center justify-between mb-sm">
+        <span className="font-label-sm text-[10px] text-outline font-bold">{issueKey}</span>
+        {renderPriorityIcon()}
       </div>
 
+      {/* Title */}
+      <h3 className="font-body-md text-body-md text-on-surface font-semibold mb-lg leading-tight line-clamp-2">
+        {card.title}
+      </h3>
+
       {/* Footer: Due Date + Assignee */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between mt-auto">
         {card.dueDate ? (
-          <span
+          <div
             className={clsx(
-              'text-xs',
-              overdue ? 'text-red-400' : 'text-[#62666d]'
+              'flex items-center gap-xs font-medium text-[11px]',
+              overdue ? 'text-danger font-bold animate-pulse' : 'text-outline'
             )}
           >
-            {overdue && '⚠ '}
-            {formatDate(card.dueDate)}
-          </span>
+            <span className="material-symbols-outlined text-[16px]">
+              {overdue ? 'schedule' : 'calendar_today'}
+            </span>
+            <span>{overdue ? 'Today' : formatDate(card.dueDate)}</span>
+          </div>
         ) : (
-          <span />
+          <div />
         )}
 
         {card.assignee && (
           <div
-            className="flex items-center justify-center w-6 h-6 rounded-full bg-[#5e6ad2]/20 text-[#828fff] text-[10px] font-semibold shrink-0"
+            className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-container text-on-primary text-[10px] font-bold border border-outline-variant shrink-0"
             title={card.assignee}
           >
             {getInitials(card.assignee)}

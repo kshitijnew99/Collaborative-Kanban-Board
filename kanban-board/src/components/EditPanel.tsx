@@ -2,17 +2,18 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useBoardStore, useSelectedCard } from '@/store/board-store';
-import { Button } from '@/components/ui/Button';
 import { ConfirmPrompt } from '@/components/ui/ConfirmPrompt';
 import type { Priority } from '@/types';
 import { DEFAULT_ASSIGNEES, getInitials } from '@/utils/constants';
 import { generateId } from '@/utils/id';
+import { relativeTime } from '@/utils/time';
 
-const PRIORITY_OPTIONS: Priority[] = ['high', 'medium', 'low'];
+const PRIORITY_OPTIONS: Priority[] = ['low', 'medium', 'high'];
 
 export function EditPanel() {
   const card = useSelectedCard();
   const selectedCardId = useBoardStore((s) => s.selectedCardId);
+  const columns = useBoardStore((s) => s.board.columns);
   const editCard = useBoardStore((s) => s.editCard);
   const deleteCard = useBoardStore((s) => s.deleteCard);
   const addComment = useBoardStore((s) => s.addComment);
@@ -23,7 +24,7 @@ export function EditPanel() {
 
   const [commentText, setCommentText] = useState('');
   const [commentAuthor, setCommentAuthor] = useState<string>(DEFAULT_ASSIGNEES[0]);
-  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const commentInputRef = useRef<HTMLInputElement>(null);
 
   // Reset comment input when card changes
   useEffect(() => {
@@ -31,6 +32,10 @@ export function EditPanel() {
   }, [selectedCardId]);
 
   if (!card || !selectedCardId) return null;
+
+  // Retrieve current column name
+  const currentColumn = columns.find((c) => c.cardIds.includes(card.id));
+  const columnName = currentColumn?.name ?? 'Todo';
 
   const handleFieldChange = (field: string, value: string | null) => {
     editCard(selectedCardId, { [field]: value }, 'local');
@@ -72,173 +77,225 @@ export function EditPanel() {
       createdAt: Date.now(),
     };
     addComment(selectedCardId, comment, 'local');
+    appendActivityLog(
+      {
+        id: generateId(),
+        description: `Comment added on "${card.title}"`,
+        timestamp: Date.now(),
+        tabId,
+        tabLabel,
+      },
+      'local'
+    );
     setCommentText('');
   };
 
+  // Generate issue key like PUL-F64
+  const issueKey = `PUL-${card.id.slice(0, 3).toUpperCase()}`;
+
   return (
-    <div className="w-80 bg-[#0f1011] border-l border-[#23252a] flex flex-col shrink-0 overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#23252a]">
-        <h2 className="text-sm font-semibold text-[#d0d6e0]">Edit Card</h2>
-        <button
-          onClick={() => setSelectedCardId(null)}
-          className="text-[#62666d] hover:text-[#f7f8f8] transition-colors cursor-pointer"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+    <aside className="w-[450px] bg-surface border-l border-outline-variant flex flex-col overflow-hidden shadow-2xl relative z-40 h-[calc(100vh-64px)]">
+      {/* Panel Header */}
+      <div className="flex items-center justify-between px-lg py-md border-b border-outline-variant shrink-0">
+        <div className="flex items-center gap-md">
+          <button
+            onClick={() => setSelectedCardId(null)}
+            className="p-1 text-on-surface-variant hover:bg-hover rounded transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+          <span className="font-label-sm text-xs font-bold text-outline">{issueKey}</span>
+        </div>
+        <div className="flex items-center gap-sm">
+          <button className="p-1.5 text-on-surface-variant hover:bg-hover rounded transition-colors">
+            <span className="material-symbols-outlined text-[18px]">share</span>
+          </button>
+          <button className="p-1.5 text-on-surface-variant hover:bg-hover rounded transition-colors">
+            <span className="material-symbols-outlined text-[18px]">more_vert</span>
+          </button>
+        </div>
       </div>
 
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+      {/* Panel Scrollable Content */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-lg flex flex-col gap-lg">
         {/* Title */}
-        <div>
-          <label className="block text-xs font-medium text-[#8a8f98] mb-1">Title</label>
-          <input
-            type="text"
+        <section>
+          <textarea
             value={card.title}
             onChange={(e) => handleFieldChange('title', e.target.value)}
-            className="w-full bg-[#141516] text-[#f7f8f8] text-sm px-3 py-2 rounded-lg border border-[#23252a] focus:border-[#5e6ad2] outline-none"
+            rows={2}
+            className="w-full font-headline-sm text-lg font-bold bg-transparent border-none resize-none p-0 focus:ring-0 leading-tight outline-none"
           />
-        </div>
+        </section>
 
-        {/* Description */}
-        <div>
-          <label className="block text-xs font-medium text-[#8a8f98] mb-1">Description</label>
-          <textarea
-            value={card.description}
-            onChange={(e) => handleFieldChange('description', e.target.value)}
-            placeholder="Add a description..."
-            rows={3}
-            className="w-full bg-[#141516] text-[#f7f8f8] text-sm px-3 py-2 rounded-lg border border-[#23252a] focus:border-[#5e6ad2] outline-none resize-none placeholder:text-[#62666d]"
-          />
-        </div>
-
-        {/* Priority */}
-        <div>
-          <label className="block text-xs font-medium text-[#8a8f98] mb-1">Priority</label>
-          <div className="flex gap-1">
-            {PRIORITY_OPTIONS.map((p) => (
-              <button
-                key={p}
-                onClick={() => handleFieldChange('priority', p)}
-                className={`flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors cursor-pointer ${
-                  card.priority === p
-                    ? p === 'high'
-                      ? 'bg-red-500/20 text-red-400 border-red-500/30'
-                      : p === 'medium'
-                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                        : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                    : 'bg-[#141516] text-[#8a8f98] border-[#23252a] hover:border-[#34343a]'
-                }`}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Due Date */}
-        <div>
-          <label className="block text-xs font-medium text-[#8a8f98] mb-1">Due Date</label>
-          <input
-            type="date"
-            value={card.dueDate ?? ''}
-            onChange={(e) => handleFieldChange('dueDate', e.target.value || null)}
-            className="w-full bg-[#141516] text-[#f7f8f8] text-sm px-3 py-2 rounded-lg border border-[#23252a] focus:border-[#5e6ad2] outline-none [color-scheme:dark]"
-          />
-        </div>
-
-        {/* Assignee */}
-        <div>
-          <label className="block text-xs font-medium text-[#8a8f98] mb-1">Assignee</label>
-          <select
-            value={card.assignee ?? ''}
-            onChange={(e) => handleFieldChange('assignee', e.target.value || null)}
-            className="w-full bg-[#141516] text-[#f7f8f8] text-sm px-3 py-2 rounded-lg border border-[#23252a] focus:border-[#5e6ad2] outline-none cursor-pointer"
-          >
-            <option value="">Unassigned</option>
-            {DEFAULT_ASSIGNEES.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Comments Section */}
-        <div>
-          <label className="block text-xs font-medium text-[#8a8f98] mb-2">
-            Comments ({card.comments.length})
-          </label>
-
-          {/* Comment List */}
-          <div className="space-y-2 mb-3 max-h-40 overflow-y-auto">
-            {card.comments.length === 0 && (
-              <p className="text-xs text-[#62666d] italic">No comments yet</p>
-            )}
-            {card.comments.map((comment) => (
-              <div
-                key={comment.id}
-                className="bg-[#141516] rounded-lg p-2.5 border border-[#23252a]"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-5 h-5 rounded-full bg-[#5e6ad2]/20 text-[#828fff] text-[9px] font-semibold flex items-center justify-center">
-                    {getInitials(comment.author)}
-                  </div>
-                  <span className="text-xs font-medium text-[#d0d6e0]">
-                    {comment.author}
-                  </span>
-                  <span className="text-[10px] text-[#62666d] ml-auto">
-                    {new Date(comment.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                <p className="text-xs text-[#8a8f98] leading-relaxed">{comment.text}</p>
-              </div>
-            ))}
+        {/* Attributes Grid */}
+        <section className="grid grid-cols-2 gap-md py-md border-y border-outline-variant">
+          {/* Status (Column Name) */}
+          <div className="flex flex-col gap-xs">
+            <label className="font-label-sm text-[10px] text-outline font-bold uppercase tracking-wider">Status</label>
+            <div className="flex items-center gap-sm px-sm py-1.5 bg-hover rounded-lg w-full text-left">
+              <span className="material-symbols-outlined text-[18px] text-warning">
+                radio_button_checked
+              </span>
+              <span className="font-body-md text-sm text-on-surface font-semibold">{columnName}</span>
+            </div>
           </div>
 
-          {/* Add Comment */}
-          <div className="space-y-2">
+          {/* Assignee */}
+          <div className="flex flex-col gap-xs">
+            <label className="font-label-sm text-[10px] text-outline font-bold uppercase tracking-wider">Assignee</label>
             <select
-              value={commentAuthor}
-              onChange={(e) => setCommentAuthor(e.target.value)}
-              className="w-full bg-[#141516] text-[#f7f8f8] text-xs px-2 py-1.5 rounded-lg border border-[#23252a] focus:border-[#5e6ad2] outline-none cursor-pointer"
+              value={card.assignee ?? ''}
+              onChange={(e) => handleFieldChange('assignee', e.target.value || null)}
+              className="flex items-center gap-sm px-sm py-1.5 bg-hover rounded-lg border-none focus:ring-0 text-sm font-semibold text-on-surface w-full cursor-pointer outline-none"
             >
+              <option value="">Unassigned</option>
               {DEFAULT_ASSIGNEES.map((name) => (
                 <option key={name} value={name}>
                   {name}
                 </option>
               ))}
             </select>
-            <textarea
-              ref={commentInputRef}
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Write a comment..."
-              rows={2}
-              className="w-full bg-[#141516] text-[#f7f8f8] text-xs px-3 py-2 rounded-lg border border-[#23252a] focus:border-[#5e6ad2] outline-none resize-none placeholder:text-[#62666d]"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                  handleAddComment();
-                }
-              }}
-            />
-            <Button variant="primary" onClick={handleAddComment} disabled={!commentText.trim()} className="w-full text-xs">
-              Add Comment
-            </Button>
           </div>
-        </div>
+
+          {/* Priority (Segmented Control) */}
+          <div className="flex flex-col gap-xs">
+            <label className="font-label-sm text-[10px] text-outline font-bold uppercase tracking-wider">Priority</label>
+            <div className="flex bg-hover p-0.5 rounded-lg border border-outline-variant">
+              {PRIORITY_OPTIONS.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => handleFieldChange('priority', p)}
+                  className={`flex-grow flex justify-center py-1 rounded-md transition-all cursor-pointer ${
+                    card.priority === p ? 'bg-surface shadow-sm font-bold' : 'text-outline hover:text-on-surface'
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-[18px] ${
+                      card.priority === p
+                        ? p === 'high'
+                          ? 'text-danger'
+                          : p === 'medium'
+                            ? 'text-warning'
+                            : 'text-primary'
+                        : 'text-outline'
+                    }`}
+                    style={{ fontVariationSettings: card.priority === p && p === 'high' ? "'FILL' 1" : undefined }}
+                  >
+                    {p === 'high' ? 'signal_cellular_alt' : p === 'medium' ? 'signal_cellular_alt_2_bar' : 'signal_cellular_alt_1_bar'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Due Date */}
+          <div className="flex flex-col gap-xs">
+            <label className="font-label-sm text-[10px] text-outline font-bold uppercase tracking-wider">Due Date</label>
+            <input
+              type="date"
+              value={card.dueDate ?? ''}
+              onChange={(e) => handleFieldChange('dueDate', e.target.value || null)}
+              className="w-full bg-hover text-on-surface text-sm px-sm py-1.5 rounded-lg border-none focus:ring-0 outline-none [color-scheme:light] font-semibold"
+            />
+          </div>
+        </section>
+
+        {/* Description */}
+        <section>
+          <label className="font-label-sm text-[10px] text-outline font-bold uppercase tracking-wider mb-sm block">
+            Description
+          </label>
+          <textarea
+            value={card.description}
+            onChange={(e) => handleFieldChange('description', e.target.value)}
+            placeholder="Add a description..."
+            rows={5}
+            className="w-full bg-transparent text-on-surface text-sm border-none focus:ring-0 outline-none resize-none placeholder:text-outline/70 leading-relaxed"
+          />
+        </section>
+
+        {/* Comments Section */}
+        <section className="mt-md">
+          <label className="font-label-sm text-[10px] text-outline font-bold uppercase tracking-wider mb-lg block">
+            Comments ({card.comments.length})
+          </label>
+
+          {/* Comment List */}
+          <div className="space-y-4 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+            {card.comments.length === 0 ? (
+              <p className="text-xs text-outline italic">No comments yet</p>
+            ) : (
+              card.comments.map((comment) => (
+                <div key={comment.id} className="flex gap-md">
+                  <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-outline-variant">
+                    {getInitials(comment.author)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-sm mb-xs">
+                      <span className="font-label-sm text-xs font-bold text-on-surface">
+                        {comment.author}
+                      </span>
+                      <span className="text-[10px] text-outline">
+                        {relativeTime(comment.createdAt)}
+                      </span>
+                    </div>
+                    <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
+                      {comment.text}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Add Comment Input Bar */}
+          <div className="mt-lg pt-lg border-t border-outline-variant">
+            <div className="flex gap-md items-center">
+              <select
+                value={commentAuthor}
+                onChange={(e) => setCommentAuthor(e.target.value)}
+                className="bg-hover text-on-surface text-xs px-2 py-1.5 rounded-lg border-none focus:ring-0 outline-none w-28 shrink-0 cursor-pointer font-semibold"
+              >
+                {DEFAULT_ASSIGNEES.map((name) => (
+                  <option key={name} value={name}>
+                    {name.split(' ')[0]}
+                  </option>
+                ))}
+              </select>
+              <div className="flex-grow relative flex items-center">
+                <input
+                  ref={commentInputRef}
+                  type="text"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Write a comment..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddComment();
+                  }}
+                  className="w-full px-md py-2 bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-xs pr-10"
+                />
+                <button
+                  onClick={handleAddComment}
+                  disabled={!commentText.trim()}
+                  className="absolute right-2 text-primary hover:bg-selected p-1 rounded-md transition-colors disabled:opacity-30 cursor-pointer flex items-center justify-center"
+                >
+                  <span className="material-symbols-outlined text-[18px]">send</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Delete */}
-        <div className="pt-2 border-t border-[#23252a]">
+        <div className="pt-4 mt-lg border-t border-outline-variant">
           <ConfirmPrompt
             label="Delete Card"
             onConfirm={handleDelete}
-            className="w-full"
+            className="w-full text-xs font-semibold py-2 rounded-lg"
           />
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

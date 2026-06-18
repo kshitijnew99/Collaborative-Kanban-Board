@@ -147,7 +147,7 @@ export function Board() {
   );
 
   return (
-    <div className="flex-1 flex min-h-0" onClick={() => setSelectedCardId(null)}>
+    <div className="flex-1 flex min-h-0 relative" onClick={() => setSelectedCardId(null)}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -156,7 +156,12 @@ export function Board() {
         onDragEnd={handleDragEnd}
       >
         {/* Columns */}
-        <div className="flex-1 flex gap-4 p-4 overflow-x-auto" onClick={(e) => e.stopPropagation()}>
+        <div
+          className={`flex-1 flex gap-lg p-lg overflow-x-auto bg-background custom-scrollbar transition-opacity duration-300 ${
+            selectedCardId ? 'opacity-50' : ''
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
           {columns.map((column) => (
             <Column key={column.id} column={column} />
           ))}
@@ -170,7 +175,7 @@ export function Board() {
 
       {/* Edit Panel */}
       {selectedCardId && (
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex">
           <EditPanel />
         </div>
       )}

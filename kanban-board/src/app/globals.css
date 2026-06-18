@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #010102;
-  --foreground: #f7f8f8;
+  --background: #F8FAFC;
+  --foreground: #191b23;
   --font-body: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-code: var(--font-mono), ui-monospace, monospace;
 }
@@ -15,39 +15,47 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Scrollbar styling for dark theme */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
 }
 
-::-webkit-scrollbar-track {
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #23252a;
-  border-radius: 3px;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #34343a;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
 }
 
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #23252a transparent;
+/* Timeline/Activity Log Line styling */
+.activity-feed-line::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: -8px;
+  width: 1px;
+  background-color: #E2E8F0;
 }
 
-/* Date input dark mode fix */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
+.activity-feed-item:last-child::before {
+  display: none;
 }
 
 /* Selection */
 ::selection {
-  background: rgba(94, 106, 210, 0.3);
-  color: #f7f8f8;
+  background: rgba(0, 74, 198, 0.15);
+  color: #004ac6;
 }

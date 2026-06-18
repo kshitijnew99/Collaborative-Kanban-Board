@@ -11,15 +11,15 @@ interface BadgeProps {
 const priorityConfig: Record<Priority, { label: string; classes: string }> = {
   high: {
     label: 'High',
-    classes: 'bg-red-500/20 text-red-400 border-red-500/30',
+    classes: 'bg-error-container text-on-error-container',
   },
   medium: {
     label: 'Medium',
-    classes: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    classes: 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
   },
   low: {
     label: 'Low',
-    classes: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    classes: 'bg-secondary-fixed text-on-secondary-fixed-variant',
   },
 };
 
@@ -29,7 +29,7 @@ export function Badge({ priority, className }: BadgeProps) {
   return (
     <span
       className={clsx(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium border leading-none',
+        'inline-flex items-center rounded px-2 py-0.5 text-[10px] font-bold uppercase leading-none',
         config.classes,
         className
       )}
