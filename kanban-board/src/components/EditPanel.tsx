@@ -225,6 +225,24 @@ export function EditPanel() {
               className="w-full bg-hover text-on-surface text-sm px-sm py-1.5 rounded-lg border-none focus:ring-0 outline-none [color-scheme:light] font-semibold"
             />
           </div>
+
+          {/* Card Color Picker */}
+          <div className="flex flex-col gap-xs col-span-2 mt-xs">
+            <label className="font-label-sm text-[10px] text-outline font-bold uppercase tracking-wider">Card Color</label>
+            <div className="flex gap-md mt-xs">
+              {['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#c084fc'].map((color) => (
+                <button
+                  key={color}
+                  onClick={() => handleFieldChange('color', card.color === color ? null : color)}
+                  style={{ backgroundColor: color }}
+                  className={`w-6 h-6 rounded-full border-2 transition-all cursor-pointer ${
+                    card.color === color ? 'border-primary scale-110 shadow-sm' : 'border-transparent hover:scale-105'
+                  }`}
+                  title="Select card color"
+                />
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* Description */}

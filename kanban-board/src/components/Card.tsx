@@ -77,7 +77,7 @@ export function Card({ card }: CardProps) {
         setSelectedCardId(card.id);
       }}
       className={clsx(
-        'group bg-surface p-md rounded-xl border shadow-sm cursor-grab active:cursor-grabbing transition-all duration-150 hover:bg-hover',
+        'group relative overflow-hidden bg-surface p-md rounded-xl border shadow-sm cursor-grab active:cursor-grabbing transition-all duration-150 hover:bg-hover',
         isDragging && 'opacity-50 shadow-lg scale-[1.02]',
         isRemoteDragging && 'opacity-60 border-primary/40 ring-1 ring-primary/20',
         isSelected
@@ -85,8 +85,16 @@ export function Card({ card }: CardProps) {
           : 'border-border hover:border-primary/50'
       )}
     >
+      {/* Top Color Strip */}
+      {card.color && (
+        <div
+          style={{ backgroundColor: card.color }}
+          className="absolute top-0 left-0 right-0 h-1.5"
+        />
+      )}
+
       {/* Header: Key + Priority */}
-      <div className="flex items-center justify-between mb-sm">
+      <div className={clsx("flex items-center justify-between mb-sm", card.color && "mt-xs")}>
         <span className="font-label-sm text-[10px] text-outline font-bold">{issueKey}</span>
         {renderPriorityIcon()}
       </div>
